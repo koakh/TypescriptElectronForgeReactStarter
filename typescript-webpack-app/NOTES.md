@@ -9,6 +9,9 @@
     - [React Setup](#react-setup)
   - [Prepare for tsx files](#prepare-for-tsx-files)
     - [Create the react entrypoint as renderer.ts](#create-the-react-entrypoint-as-rendererts)
+    - [Debug both main and renderer at same time](#debug-both-main-and-renderer-at-same-time)
+    - [Hot Reload](#hot-reload)
+    - [Fix HotReload Message](#fix-hotreload-message)
 
 ## TLDR
 
@@ -103,7 +106,7 @@ change `index.html`
 </head>
 
 <body>
-  <div id="root"></div>
+  <div id="app"></div>
 </body>
 
 </html>
@@ -115,11 +118,20 @@ change `index.html`
 Module './app/app' was resolved to '/mnt/bcbe07de-fa2f-4351-ac99-2f19537a1df1/home/mario/Development/Electron/ElectronForge/typescript-webpack-app/src/app/app.tsx', but '--jsx' is not set.ts(6142)
 ```
 
-Cannot use JSX unless the '--jsx' flag is provided
-Restart your IDE. Sometimes tsconfig.json changes aren't immediately picked up
-seems a problem after install react dependencies
-
 - [Cannot use JSX unless the '--jsx' flag is provided](https://stackoverflow.com/questions/50432556/cannot-use-jsx-unless-the-jsx-flag-is-provided)
+
+add to `tsconfig.json`
+
+```json
+{
+  "compilerOptions": {
+    "jsx": "react"
+  }
+}
+```
+
+Cannot use JSX unless the '--jsx' flag is provided
+Restart your IDE. Sometimes `tsconfig.json` changes aren't immediately picked up
 
 ### Create the react entrypoint as renderer.ts
 
@@ -129,6 +141,45 @@ $ mv src/renderer.ts src/renderer.tsx
 
 `renderer.tsx`
 
+and change `package.json` entryPoints from `renderer.ts` to `renderer.tsx`
+
+```json
+"@electron-forge/plugin-webpack",
+{
+  "mainConfig": "./webpack.main.config.js",
+  "renderer": {
+    "config": "./webpack.renderer.config.js",
+    "entryPoints": [
+      {
+        "html": "./src/index.html",
+        "js": "./src/renderer.tsx",
+        "name": "main_window"
+```
+
+add `src/app/app.tsx`
+
+```tsx
+import React from 'react';
+
+const App = () => {
+  const onClickHandler = () => {
+    // add a break point here
+    console.log('onClickHandler fired');
+  }
+
+  return (
+    <div className="app">
+      <h1>I'm React running in Electron App!!</h1>
+      <button onClick={onClickHandler}>ClickMe</button>
+    </div>
+  );
+}
+
+export default App;
+```
+
+modify `renderer.tsx`
+
 ```tsx
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -136,3 +187,28 @@ import App from '@/app/app';
 
 ReactDOM.render(<App />, document.getElementById('app'));
 ```
+
+launch debugger/app and we see **I'm React running in Electron App!!**
+
+### Debug both main and renderer at same time
+
+the trick is change from app to `main_window` in `package.json`
+
+```json
+// this is the trick to debug renderer app, we must use main_window
+// like was defined in @electron-forge/plugin-webpack entryPoints `"name": "main_window"`
+"url": "http://localhost:3000/main_window"
+```
+
+### Hot Reload
+
+made some changes in ex `<button onClick={onClickHandler}>ClickMe Now</button>`
+and press `ctrl+r` in renderer window and we see the button label updated, great
+
+### Fix HotReload Message
+
+```shell
+[HMR] The following modules couldn't be hot updated: (Full reload needed)
+This is usually because the modules which have changed (and their parents) do not know how to hot reload themselves. See https://webpack.js.org/concepts/hot-module-replacement/ for more details.
+```
+

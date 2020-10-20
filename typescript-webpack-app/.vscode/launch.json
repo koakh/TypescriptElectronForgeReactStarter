@@ -22,7 +22,9 @@
       "port": 9223,
       "webRoot": "${workspaceFolder}",
       "timeout": 120000,
-      "url": "http://localhost:3000/app"
+      // this is the trick to debug renderer app, we must use main_window
+      // like was defined in @electron-forge/plugin-webpack entryPoints `"name": "main_window"`
+      "url": "http://localhost:3000/main_window"
     }
   ],
   "compounds": [
