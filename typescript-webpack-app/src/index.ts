@@ -13,7 +13,7 @@ const createWindow = (): void => {
     width: 800,
     backgroundColor: 'white',
     webPreferences: {
-      nodeIntegration: true
+      // nodeIntegration: true
     }
   });
 
