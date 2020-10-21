@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 declare const MAIN_WINDOW_WEBPACK_ENTRY: any;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -17,6 +17,19 @@ const createWindow = (): void => {
       nodeIntegration: true
     }
   });
+
+  // send ipc mail to this renderer window, after finished load
+  mainWindow.webContents.on('did-finish-load', (e: BrowserWindow) => {
+    setInterval(() => {
+      mainWindow.webContents.send('mailbox', {
+        from: 'Koakh',
+        email: 'mail@koakh.com',
+        subject: `mail #${new Date().getMilliseconds()}`,
+        priority: 1
+      })
+    }, 5000);
+  })
+
 
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
@@ -51,14 +64,28 @@ app.on('activate', () => {
 // code. You can also put them in separate files and import them here.
 
 // ipc
-ipcMain.on( 'sync-message', (e, args) => {
+ipcMain.on('sync-message', (e, args) => {
   console.log(args)
-  setTimeout( () => {
+  setTimeout(() => {
     e.returnValue = 'A sync response from the main process'
   }, 4000)
 })
 
-ipcMain.on( 'channel1', (e, args) => {
+ipcMain.on('channel1', (e, args) => {
   console.log(args)
-  e.sender.send( 'channel1-response', 'Message received on "channel1". Thank you!')
+  e.sender.send('channel1-response', 'Message received on "channel1". Thank you!')
+})
+
+// handle and invoke
+const askFruit = async () =>{
+  const fruits = ['Apple', 'Orange', 'Grape']
+  let choice = await dialog.showMessageBox({
+    message: 'Pick a fruit:',
+    buttons: fruits
+  });
+  return fruits[choice.response]
+}
+
+ipcMain.handle('ask-fruit', e => {
+  return askFruit()
 })

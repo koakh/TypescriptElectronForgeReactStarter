@@ -10,7 +10,8 @@ var createWindow = function () {
     // Create the browser window.
     var mainWindow = new electron_1.BrowserWindow({
         height: 600,
-        width: 800
+        width: 800,
+        backgroundColor: 'red'
     });
     // and load the index.html of the app.
     mainWindow.loadFile(path.join(__dirname, '../src/index.html'));

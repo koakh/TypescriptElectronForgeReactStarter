@@ -1,12 +1,11 @@
 {
-  "name": "my-new-app",
-  "productName": "my-new-app",
+  "name": "typescript-app",
+  "productName": "typescript-app",
   "version": "1.0.0",
   "description": "My Electron application description",
   "main": "dist/index.js",
   "scripts": {
     "start": "tsc && electron-forge start",
-    "debug": "electron-forge start --inspect-electron",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
